@@ -24,6 +24,7 @@ function App() {
   const [selectedNumber, setSelectedNumber] = useState(null)
   const [fortune, setFortune] = useState('')
   const [flapState, setFlapState] = useState('closed') // closed | open-horizontal | open-vertical | reveal
+  const [isAnimating, setIsAnimating] = useState(false)
 
   const reset = () => {
     setStep('pickColor')
@@ -31,22 +32,61 @@ function App() {
     setSelectedNumber(null)
     setFortune('')
     setFlapState('closed')
+    setIsAnimating(false)
+  }
+
+  const playFoldCycle = (steps, onDone) => {
+    if (steps <= 0) {
+      onDone()
+      return
+    }
+
+    setIsAnimating(true)
+
+    let current = 0
+    let state = 'open-horizontal'
+
+    const tick = () => {
+      setFlapState(state)
+      current += 1
+
+      if (current >= steps) {
+        setTimeout(() => {
+          setFlapState('closed')
+          setIsAnimating(false)
+          onDone()
+        }, 220)
+        return
+      }
+
+      state = state === 'open-horizontal' ? 'open-vertical' : 'open-horizontal'
+      setTimeout(tick, 220)
+    }
+
+    tick()
   }
 
   const handleColorClick = (color) => {
+    if (isAnimating) return
+
     setSelectedColor(color)
-    setStep('pickNumber')
-    setFlapState('open-horizontal')
+
+    const steps = color.length
+    playFoldCycle(steps, () => {
+      setStep('pickNumber')
+    })
   }
 
   const handleNumberClick = (number) => {
+    if (isAnimating) return
+
     setSelectedNumber(number)
-    setFlapState('open-vertical')
-    setTimeout(() => {
+
+    playFoldCycle(number, () => {
       setFortune(randomFortune())
       setFlapState('reveal')
       setStep('showFortune')
-    }, 700)
+    })
   }
 
   const instructionText = {
