@@ -35,32 +35,35 @@ function App() {
     setIsAnimating(false)
   }
 
-  const playFoldCycle = (steps, onDone) => {
+  const playFoldCycle = (axis, steps, onDone) => {
     if (steps <= 0) {
       onDone()
       return
     }
 
+    const openState = axis === 'x' ? 'open-horizontal' : 'open-vertical'
+
     setIsAnimating(true)
 
     let current = 0
-    let state = 'open-horizontal'
 
     const tick = () => {
-      setFlapState(state)
-      current += 1
+      // open
+      setFlapState(openState)
 
-      if (current >= steps) {
-        setTimeout(() => {
-          setFlapState('closed')
+      setTimeout(() => {
+        // close
+        setFlapState('closed')
+        current += 1
+
+        if (current >= steps) {
           setIsAnimating(false)
           onDone()
-        }, 220)
-        return
-      }
+          return
+        }
 
-      state = state === 'open-horizontal' ? 'open-vertical' : 'open-horizontal'
-      setTimeout(tick, 220)
+        setTimeout(tick, 220)
+      }, 220)
     }
 
     tick()
@@ -72,7 +75,8 @@ function App() {
     setSelectedColor(color)
 
     const steps = color.length
-    playFoldCycle(steps, () => {
+    // Follow Jill's description: loop horizontal (x-axis) based on word length
+    playFoldCycle('x', steps, () => {
       setStep('pickNumber')
     })
   }
@@ -82,7 +86,8 @@ function App() {
 
     setSelectedNumber(number)
 
-    playFoldCycle(number, () => {
+    // Then loop vertical (y-axis) based on chosen number
+    playFoldCycle('y', number, () => {
       setFortune(randomFortune())
       setFlapState('reveal')
       setStep('showFortune')
