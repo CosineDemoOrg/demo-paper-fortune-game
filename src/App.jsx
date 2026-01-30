@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-const COLORS = ['Red', 'Blue', 'Green', 'Yellow']
+const COLORS = ['Red', 'Blue', 'Yellow', 'Green']
 const NUMBERS = [1, 2, 3, 4]
 
 const FORTUNES = [
@@ -35,24 +35,25 @@ function App() {
     setIsAnimating(false)
   }
 
-  const playFoldCycle = (axis, steps, onDone) => {
+  const playFoldSequence = (steps, startAxis, onDone) => {
     if (steps <= 0) {
       onDone()
       return
     }
 
-    const openState = axis === 'x' ? 'open-horizontal' : 'open-vertical'
-
     setIsAnimating(true)
 
     let current = 0
+    let axis = startAxis
 
     const tick = () => {
-      // open
+      const openState = axis === 'x' ? 'open-horizontal' : 'open-vertical'
+
+      // open along current axis
       setFlapState(openState)
 
       setTimeout(() => {
-        // close
+        // then close back to center
         setFlapState('closed')
         current += 1
 
@@ -62,8 +63,11 @@ function App() {
           return
         }
 
-        setTimeout(tick, 220)
-      }, 220)
+        // alternate axis each count to mimic real finger motion
+        axis = axis === 'x' ? 'y' : 'x'
+
+        setTimeout(tick, 180)
+      }, 180)
     }
 
     tick()
@@ -75,8 +79,8 @@ function App() {
     setSelectedColor(color)
 
     const steps = color.length
-    // Follow Jill's description: loop horizontal (x-axis) based on word length
-    playFoldCycle('x', steps, () => {
+    // Spell the color name, starting with a horizontal open
+    playFoldSequence(steps, 'x', () => {
       setStep('pickNumber')
     })
   }
@@ -86,8 +90,8 @@ function App() {
 
     setSelectedNumber(number)
 
-    // Then loop vertical (y-axis) based on chosen number
-    playFoldCycle('y', number, () => {
+    // Count the number, starting with a vertical open
+    playFoldSequence(number, 'y', () => {
       setFortune(randomFortune())
       setFlapState('reveal')
       setStep('showFortune')
